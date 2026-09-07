@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:kds/app/orders_cycle/widgets/header_tab.dart';
 import 'package:provider/provider.dart';
 import '../../../styles/kds_colors.dart';
 import '../providers/kds_provider.dart';
@@ -9,11 +10,7 @@ class KdsHeader extends StatelessWidget implements PreferredSizeWidget {
   final String activeTab; // 'live' or 'history'
   final ValueChanged<String>? onTabChanged;
 
-  const KdsHeader({
-    super.key,
-    this.activeTab = 'live',
-    this.onTabChanged,
-  });
+  const KdsHeader({super.key, this.activeTab = 'live', this.onTabChanged});
 
   @override
   Size get preferredSize => Size.fromHeight(60.h);
@@ -70,7 +67,11 @@ class KdsHeader extends StatelessWidget implements PreferredSizeWidget {
           SizedBox(width: 16.w),
           Icon(Icons.wifi, size: 20.r, color: KdsColors.textMuted),
           SizedBox(width: 12.w),
-          Icon(Icons.notifications_none, size: 22.r, color: KdsColors.textMuted),
+          Icon(
+            Icons.notifications_none,
+            size: 22.r,
+            color: KdsColors.textMuted,
+          ),
           SizedBox(width: 12.w),
 
           // Language Switcher Toggle Icon
@@ -107,7 +108,11 @@ class KdsHeader extends StatelessWidget implements PreferredSizeWidget {
                   ),
                 ),
                 SizedBox(width: 4.w),
-                Icon(Icons.arrow_drop_down, size: 20.r, color: KdsColors.textDark),
+                Icon(
+                  Icons.arrow_drop_down,
+                  size: 20.r,
+                  color: KdsColors.textDark,
+                ),
               ],
             ),
           ),
@@ -120,7 +125,9 @@ class KdsHeader extends StatelessWidget implements PreferredSizeWidget {
             decoration: BoxDecoration(
               color: KdsColors.statusReadyBg,
               borderRadius: BorderRadius.circular(20.r),
-              border: Border.all(color: KdsColors.statusReadyBorder.withValues(alpha: 0.3)),
+              border: Border.all(
+                color: KdsColors.statusReadyBorder.withValues(alpha: 0.3),
+              ),
             ),
             child: Row(
               children: [
@@ -148,72 +155,34 @@ class KdsHeader extends StatelessWidget implements PreferredSizeWidget {
           const Spacer(),
 
           // Navigation Links ("الطلبات المباشرة", "السجل")
-          Row(
-            children: [
-              // History Tab Link
-              InkWell(
-                onTap: () => onTabChanged?.call('history'),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'history'.tr(),
-                      style: TextStyle(
-                        fontSize: 14.sp,
-                        fontWeight: activeTab == 'history'
-                            ? FontWeight.bold
-                            : FontWeight.w500,
-                        color: activeTab == 'history'
-                            ? KdsColors.primaryBlue
-                            : KdsColors.textMuted,
-                      ),
-                    ),
-                    SizedBox(height: 4.h),
-                    Container(
-                      height: 2.h,
-                      width: 50.w,
-                      color: activeTab == 'history'
-                          ? KdsColors.primaryBlue
-                          : Colors.transparent,
-                    ),
-                  ],
+          Container(
+            padding: EdgeInsets.all(4.r),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF1F5F9),
+              borderRadius: BorderRadius.circular(10.r),
+              border: Border.all(color: KdsColors.borderColor),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                HeaderTab(
+                  title: 'history'.tr(),
+                  icon: Icons.history_rounded,
+                  isActive: activeTab == 'history',
+                  onTap: () => onTabChanged?.call('history'),
                 ),
-              ),
 
-              SizedBox(width: 20.w),
+                SizedBox(width: 4.w),
 
-              // Live Orders Tab Link
-              InkWell(
-                onTap: () => onTabChanged?.call('live'),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'live_orders'.tr(),
-                      style: TextStyle(
-                        fontSize: 14.sp,
-                        fontWeight: activeTab == 'live'
-                            ? FontWeight.bold
-                            : FontWeight.w500,
-                        color: activeTab == 'live'
-                            ? KdsColors.primaryBlue
-                            : KdsColors.textMuted,
-                      ),
-                    ),
-                    SizedBox(height: 4.h),
-                    Container(
-                      height: 2.h,
-                      width: 70.w,
-                      color: activeTab == 'live'
-                          ? KdsColors.primaryBlue
-                          : Colors.transparent,
-                    ),
-                  ],
+                HeaderTab(
+                  title: 'live_orders'.tr(),
+                  icon: Icons.receipt_long_outlined,
+                  isActive: activeTab == 'live',
+                  onTap: () => onTabChanged?.call('live'),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-
           SizedBox(width: 24.w),
 
           // BluBite Logo Branding

@@ -182,6 +182,10 @@ class Datum {
 
     OrderType typeEnum = (deliveryOrder == true) ? OrderType.delivery : OrderType.dineIn;
 
+    final bool isCancelledOrder = (refundOrder == true) ||
+        (isRefunded == true) ||
+        (statusStr == 'cancel' || statusStr == 'cancelled');
+
     return HistoryOrder(
       id: id?.toString() ?? '',
       orderNumber: orderNumber ?? name ?? posReference ?? ticketCode ?? id?.toString() ?? '',
@@ -192,6 +196,8 @@ class Datum {
       pickupTime: pickupTimeStr,
       durationMinutes: '15m',
       customerName: customerName ?? cashier ?? 'Customer #${orderNumber ?? id}',
+      createdAt: created,
+      isCancelled: isCancelledOrder,
       items: (orderLines ?? []).map((line) {
         final note = line.kitchenNote ?? line.customerNote;
         return KdsOrderItem(

@@ -51,6 +51,7 @@
   "order_number": "Order #",
   "type_table": "Type / Table",
   "pickup_time": "Pickup Time",
+  "date": "Date",
   "duration": "Duration",
   "status": "Status",
   "actions": "Actions",

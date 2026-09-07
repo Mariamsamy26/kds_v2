@@ -47,15 +47,15 @@ class HistoryFilterBar extends StatelessWidget {
               }
             },
           ),
-          SizedBox(width: 8.w),
 
-          // Staff Filter Pill
-          _FilterPill(
-            label: 'staff_all'.tr(),
-            icon: Icons.person_outline,
-            onTap: () {},
-          ),
+          // SizedBox(width: 8.w),
 
+          // // Staff Filter Pill
+          // _FilterPill(
+          //   label: 'staff_all'.tr(),
+          //   icon: Icons.person_outline,
+          //   onTap: () {},
+          // ),
           SizedBox(width: 8.w),
 
           // Date Filter Pill (Day or Range selection)
@@ -140,8 +140,8 @@ class HistoryFilterBar extends StatelessWidget {
     BuildContext context,
     HistoryProvider provider,
   ) async {
-    DateTime? fromDate = provider.selectedDateRange?.start;
-    DateTime? toDate = provider.selectedDateRange?.end;
+    DateTime? fromDate = provider.selectedDateRange.start;
+    DateTime? toDate = provider.selectedDateRange.end;
 
     final DateTime now = DateTime.now();
 

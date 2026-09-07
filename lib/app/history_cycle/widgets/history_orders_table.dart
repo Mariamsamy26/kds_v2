@@ -50,8 +50,11 @@ class HistoryOrdersTable extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.history_toggle_off,
-                size: 48.r, color: KdsColors.textMuted),
+            Icon(
+              Icons.history_toggle_off,
+              size: 48.r,
+              color: KdsColors.textMuted,
+            ),
             SizedBox(height: 12.h),
             Text(
               'no_history_orders'.tr(),
@@ -78,9 +81,7 @@ class HistoryOrdersTable extends StatelessWidget {
           Container(
             padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 14.h),
             decoration: const BoxDecoration(
-              border: Border(
-                bottom: BorderSide(color: KdsColors.borderColor),
-              ),
+              border: Border(bottom: BorderSide(color: KdsColors.borderColor)),
             ),
             child: Row(
               children: [
@@ -88,6 +89,17 @@ class HistoryOrdersTable extends StatelessWidget {
                   flex: 2,
                   child: Text(
                     'order_number'.tr(),
+                    style: TextStyle(
+                      fontSize: 12.sp,
+                      fontWeight: FontWeight.bold,
+                      color: KdsColors.textMuted,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    'date'.tr(),
                     style: TextStyle(
                       fontSize: 12.sp,
                       fontWeight: FontWeight.bold,
@@ -117,28 +129,29 @@ class HistoryOrdersTable extends StatelessWidget {
                     ),
                   ),
                 ),
-                Expanded(
-                  flex: 2,
-                  child: Text(
-                    'duration'.tr(),
-                    style: TextStyle(
-                      fontSize: 12.sp,
-                      fontWeight: FontWeight.bold,
-                      color: KdsColors.textMuted,
-                    ),
-                  ),
-                ),
-                Expanded(
-                  flex: 2,
-                  child: Text(
-                    'status'.tr(),
-                    style: TextStyle(
-                      fontSize: 12.sp,
-                      fontWeight: FontWeight.bold,
-                      color: KdsColors.textMuted,
-                    ),
-                  ),
-                ),
+                // Expanded(
+                //   flex: 2,
+                //   child: Text(
+                //     'price'.tr(),
+                //     style: TextStyle(
+                //       fontSize: 12.sp,
+                //       fontWeight: FontWeight.bold,
+                //       color: KdsColors.textMuted,
+                //     ),
+                //   ),
+                // ),
+
+                // Expanded(
+                //   flex: 2,
+                //   child: Text(
+                //     'status'.tr(),
+                //     style: TextStyle(
+                //       fontSize: 12.sp,
+                //       fontWeight: FontWeight.bold,
+                //       color: KdsColors.textMuted,
+                //     ),
+                //   ),
+                // ),
                 Expanded(
                   flex: 3,
                   child: Text(
@@ -158,13 +171,12 @@ class HistoryOrdersTable extends StatelessWidget {
           Expanded(
             child: ListView.separated(
               itemCount: orders.length,
-              separatorBuilder: (context, index) => const Divider(
-                height: 1,
-                color: KdsColors.borderColor,
-              ),
+              separatorBuilder: (context, index) =>
+                  const Divider(height: 1, color: KdsColors.borderColor),
               itemBuilder: (context, index) {
                 final order = orders[index];
-                final isRestoring = historyProvider.restoringOrderId == order.id;
+                final isRestoring =
+                    historyProvider.restoringOrderId == order.id;
 
                 if (isRestoring) {
                   return _RestoreConfirmationCard(
@@ -176,18 +188,33 @@ class HistoryOrdersTable extends StatelessWidget {
                 }
 
                 return Container(
-                  padding:
-                      EdgeInsets.symmetric(horizontal: 20.w, vertical: 14.h),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 20.w,
+                    vertical: 14.h,
+                  ),
                   child: Row(
                     children: [
                       // Order Number e.g. 124
                       Expanded(
                         flex: 2,
                         child: Text(
-                          order.orderNumber,
+                          order.id,
                           style: TextStyle(
                             fontSize: 22.sp,
                             fontWeight: FontWeight.w900,
+                            color: KdsColors.textDark,
+                          ),
+                        ),
+                      ),
+
+                      // Order Date e.g. 2026/09/07
+                      Expanded(
+                        flex: 2,
+                        child: Text(
+                          DateFormat('yyyy/MM/dd').format(order.createdAt),
+                          style: TextStyle(
+                            fontSize: 13.sp,
+                            fontWeight: FontWeight.w600,
                             color: KdsColors.textDark,
                           ),
                         ),
@@ -211,8 +238,11 @@ class HistoryOrdersTable extends StatelessWidget {
                                   ),
                                 ),
                                 SizedBox(width: 4.w),
-                                Icon(_getTypeIcon(order.type),
-                                    size: 14.r, color: KdsColors.textMuted),
+                                Icon(
+                                  _getTypeIcon(order.type),
+                                  size: 14.r,
+                                  color: KdsColors.textMuted,
+                                ),
                               ],
                             ),
                             if (order.tableInfoAr != null)
@@ -243,50 +273,54 @@ class HistoryOrdersTable extends StatelessWidget {
                       ),
 
                       // Duration e.g. 15m
-                      Expanded(
-                        flex: 2,
-                        child: Text(
-                          order.durationMinutes,
-                          style: TextStyle(
-                            fontSize: 13.sp,
-                            fontWeight: FontWeight.w600,
-                            color: KdsColors.textDark,
-                          ),
-                        ),
-                      ),
+                      // Expanded(
+                      //   flex: 2,
+                      //   child: Text(
+                      //     order.durationMinutes,
+                      //     style: TextStyle(
+                      //       fontSize: 13.sp,
+                      //       fontWeight: FontWeight.w600,
+                      //       color: KdsColors.textDark,
+                      //     ),
+                      //   ),
+                      // ),
 
                       // Status Badge e.g. "مكتمل"
-                      Expanded(
-                        flex: 2,
-                        child: Align(
-                          alignment: AlignmentDirectional.centerStart,
-                          child: Container(
-                            padding: EdgeInsets.symmetric(
-                                horizontal: 10.w, vertical: 4.h),
-                            decoration: BoxDecoration(
-                              color: KdsColors.statusReadyBg,
-                              borderRadius: BorderRadius.circular(12.r),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.check,
-                                    size: 12.r,
-                                    color: KdsColors.statusReadyBorder),
-                                SizedBox(width: 4.w),
-                                Text(
-                                  'completed'.tr(),
-                                  style: TextStyle(
-                                    fontSize: 11.sp,
-                                    fontWeight: FontWeight.bold,
-                                    color: KdsColors.statusReadyText,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
+                      // Expanded(
+                      //   flex: 2,
+                      //   child: Align(
+                      //     alignment: AlignmentDirectional.centerStart,
+                      //     child: Container(
+                      //       padding: EdgeInsets.symmetric(
+                      //         horizontal: 10.w,
+                      //         vertical: 4.h,
+                      //       ),
+                      //       decoration: BoxDecoration(
+                      //         color: KdsColors.statusReadyBg,
+                      //         borderRadius: BorderRadius.circular(12.r),
+                      //       ),
+                      //       child: Row(
+                      //         mainAxisSize: MainAxisSize.min,
+                      //         children: [
+                      //           Icon(
+                      //             Icons.check,
+                      //             size: 12.r,
+                      //             color: KdsColors.statusReadyBorder,
+                      //           ),
+                      //           SizedBox(width: 4.w),
+                      //           Text(
+                      //             'completed'.tr(),
+                      //             style: TextStyle(
+                      //               fontSize: 11.sp,
+                      //               fontWeight: FontWeight.bold,
+                      //               color: KdsColors.statusReadyText,
+                      //             ),
+                      //           ),
+                      //         ],
+                      //       ),
+                      //     ),
+                      //   ),
+                      // ),
 
                       // Actions: Details & Restore
                       Expanded(
@@ -295,12 +329,16 @@ class HistoryOrdersTable extends StatelessWidget {
                           children: [
                             // Details Button
                             OutlinedButton(
-                              onPressed: () => _showDetailsModal(context, order),
+                              onPressed: () =>
+                                  _showDetailsModal(context, order),
                               style: OutlinedButton.styleFrom(
                                 padding: EdgeInsets.symmetric(
-                                    horizontal: 14.w, vertical: 8.h),
+                                  horizontal: 14.w,
+                                  vertical: 8.h,
+                                ),
                                 side: const BorderSide(
-                                    color: KdsColors.borderColor),
+                                  color: KdsColors.borderColor,
+                                ),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(8.r),
                                 ),
@@ -319,11 +357,14 @@ class HistoryOrdersTable extends StatelessWidget {
 
                             // Restore Button
                             IconButton(
-                              icon: Icon(Icons.restore,
-                                  size: 20.r, color: KdsColors.primaryBlue),
+                              icon: Icon(
+                                Icons.restore,
+                                size: 20.r,
+                                color: KdsColors.primaryBlue,
+                              ),
                               tooltip: 'restore'.tr(),
-                              onPressed: () => historyProvider
-                                  .setRestoringOrderId(order.id),
+                              onPressed: () =>
+                                  historyProvider.setRestoringOrderId(order.id),
                             ),
                           ],
                         ),
@@ -369,13 +410,18 @@ class HistoryOrdersTable extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12.r),
+        ),
         title: Text('${'order_number'.tr()} ${order.orderNumber}'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('${'status'.tr()}: ${'completed'.tr()}'),
+            Text(
+              '${'date'.tr()}: ${DateFormat('yyyy/MM/dd').format(order.createdAt)}',
+            ),
             Text('${'duration'.tr()}: ${order.durationMinutes}'),
             Text('${'pickup_time'.tr()}: ${order.pickupTime}'),
             const Divider(),
@@ -432,8 +478,10 @@ class _RestoreConfirmationCard extends StatelessWidget {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: KdsColors.primaryBlue,
                   elevation: 0,
-                  padding:
-                      EdgeInsets.symmetric(horizontal: 14.w, vertical: 8.h),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 14.w,
+                    vertical: 8.h,
+                  ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(6.r),
                   ),
@@ -451,8 +499,10 @@ class _RestoreConfirmationCard extends StatelessWidget {
               OutlinedButton(
                 onPressed: onCancel,
                 style: OutlinedButton.styleFrom(
-                  padding:
-                      EdgeInsets.symmetric(horizontal: 14.w, vertical: 8.h),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 14.w,
+                    vertical: 8.h,
+                  ),
                   side: const BorderSide(color: KdsColors.borderColor),
                   backgroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
@@ -461,10 +511,7 @@ class _RestoreConfirmationCard extends StatelessWidget {
                 ),
                 child: Text(
                   'cancel'.tr(),
-                  style: TextStyle(
-                    fontSize: 12.sp,
-                    color: KdsColors.textDark,
-                  ),
+                  style: TextStyle(fontSize: 12.sp, color: KdsColors.textDark),
                 ),
               ),
             ],
@@ -472,8 +519,9 @@ class _RestoreConfirmationCard extends StatelessWidget {
 
           // Restore Prompt Title & Subtitle
           Column(
-            crossAxisAlignment:
-                isAr ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+            crossAxisAlignment: isAr
+                ? CrossAxisAlignment.end
+                : CrossAxisAlignment.start,
             children: [
               Text(
                 '${'restore_order_prompt'.tr()} #${order.orderNumber}',
@@ -486,10 +534,7 @@ class _RestoreConfirmationCard extends StatelessWidget {
               SizedBox(height: 2.h),
               Text(
                 'restore_order_subtitle'.tr(),
-                style: TextStyle(
-                  fontSize: 11.sp,
-                  color: KdsColors.textMuted,
-                ),
+                style: TextStyle(fontSize: 11.sp, color: KdsColors.textMuted),
               ),
             ],
           ),

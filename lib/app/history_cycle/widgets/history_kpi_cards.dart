@@ -10,8 +10,30 @@ class HistoryKpiCards extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final metrics = context.watch<HistoryProvider>().metrics;
+    final provider = context.watch<HistoryProvider>();
+    final metrics = provider.metrics;
+    final totalOrders = provider.filteredHistoryOrders.length;
     final isAr = context.locale.languageCode == 'ar';
+
+    String prepSubtitle;
+    Color prepSubtitleColor;
+    if (metrics.avgPrepTimeMinutes == 0) {
+      prepSubtitle = isAr ? 'لا توجد بيانات كافية' : 'No data yet';
+      prepSubtitleColor = KdsColors.textMuted;
+    } else if (metrics.prepDiffFromAvgMinutes < 0) {
+      prepSubtitle = isAr
+          ? '${metrics.prepDiffFromAvgMinutes.abs()} دقيقة أسرع من الهدف ↓'
+          : '${metrics.prepDiffFromAvgMinutes.abs()}m faster than target ↓';
+      prepSubtitleColor = KdsColors.statusReadyBorder;
+    } else if (metrics.prepDiffFromAvgMinutes > 0) {
+      prepSubtitle = isAr
+          ? '+${metrics.prepDiffFromAvgMinutes} دقيقة فوق الهدف ↑'
+          : '+${metrics.prepDiffFromAvgMinutes}m above target ↑';
+      prepSubtitleColor = Colors.orange;
+    } else {
+      prepSubtitle = isAr ? 'مطابق للوقت القياسي' : 'On target time';
+      prepSubtitleColor = KdsColors.statusReadyBorder;
+    }
 
     return SizedBox(
       height: 110.h,
@@ -22,7 +44,9 @@ class HistoryKpiCards extends StatelessWidget {
             child: _KpiCard(
               title: 'total_completed'.tr(),
               value: '${metrics.totalCompleted}',
-              subtitle: 'today_shift'.tr(),
+              subtitle: totalOrders > 0
+                  ? (isAr ? 'من إجمالي $totalOrders طلب' : 'of $totalOrders orders')
+                  : 'today_shift'.tr(),
               subtitleColor: KdsColors.textMuted,
               valueColor: KdsColors.textDark,
               icon: Icons.check_circle,
@@ -36,11 +60,13 @@ class HistoryKpiCards extends StatelessWidget {
             child: _KpiCard(
               title: 'cancelled'.tr(),
               value: '${metrics.cancelledCount}',
-              subtitle: 'requires_review'.tr(),
-              subtitleColor: Colors.red,
-              valueColor: Colors.red,
+              subtitle: metrics.cancelledCount > 0
+                  ? 'requires_review'.tr()
+                  : (isAr ? 'لا توجد طلبات ملغاة' : 'No cancellations'),
+              subtitleColor: metrics.cancelledCount > 0 ? Colors.red : KdsColors.textMuted,
+              valueColor: metrics.cancelledCount > 0 ? Colors.red : KdsColors.textDark,
               icon: Icons.cancel,
-              iconColor: Colors.red,
+              iconColor: metrics.cancelledCount > 0 ? Colors.red : KdsColors.textMuted,
             ),
           ),
           SizedBox(width: 12.w),
@@ -49,11 +75,9 @@ class HistoryKpiCards extends StatelessWidget {
           Expanded(
             child: _KpiCard(
               title: 'avg_prep_time'.tr(),
-              value: '${metrics.avgPrepTimeMinutes}m',
-              subtitle: isAr
-                  ? '${metrics.prepDiffFromAvgMinutes} دقيقة من المتوسط ↓'
-                  : '${metrics.prepDiffFromAvgMinutes}m from avg ↓',
-              subtitleColor: KdsColors.statusReadyBorder,
+              value: metrics.avgPrepTimeMinutes > 0 ? '${metrics.avgPrepTimeMinutes}m' : '-',
+              subtitle: prepSubtitle,
+              subtitleColor: prepSubtitleColor,
               valueColor: KdsColors.statusReadyBorder,
               icon: Icons.timer_outlined,
               iconColor: KdsColors.statusReadyBorder,
@@ -65,12 +89,20 @@ class HistoryKpiCards extends StatelessWidget {
           Expanded(
             child: _KpiCard(
               title: 'late_rate'.tr(),
-              value: '${metrics.lateRatePercentage.toInt()}%',
-              subtitle: 'over_target_time'.tr(),
-              subtitleColor: KdsColors.statusNewBorder,
-              valueColor: KdsColors.statusNewBorder,
+              value: '${metrics.lateRatePercentage.toStringAsFixed(0)}%',
+              subtitle: metrics.lateRatePercentage > 0
+                  ? 'over_target_time'.tr()
+                  : (isAr ? 'جميع الطلبات في الموعد' : 'All orders on time'),
+              subtitleColor: metrics.lateRatePercentage > 0
+                  ? KdsColors.statusNewBorder
+                  : KdsColors.statusReadyBorder,
+              valueColor: metrics.lateRatePercentage > 0
+                  ? KdsColors.statusNewBorder
+                  : KdsColors.textDark,
               icon: Icons.warning_amber_rounded,
-              iconColor: KdsColors.statusNewBorder,
+              iconColor: metrics.lateRatePercentage > 0
+                  ? KdsColors.statusNewBorder
+                  : KdsColors.statusReadyBorder,
             ),
           ),
         ],

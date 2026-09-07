@@ -1,17 +1,6 @@
-enum OrderStatus {
-  newOrder,
-  inPreparation,
-  lateOrder,
-  ready,
-  completed,
-}
+enum OrderStatus { newOrder, inPreparation, lateOrder, ready, completed }
 
-enum OrderType {
-  all,
-  dineIn,
-  takeaway,
-  delivery,
-}
+enum OrderType { all, dineIn, takeaway, delivery }
 
 class KdsOrderItem {
   final String id;
@@ -86,8 +75,7 @@ class KdsOrder {
     required this.items,
   });
 
-  int get completedItemsCount =>
-      items.where((item) => item.isCompleted).length;
+  int get completedItemsCount => items.where((item) => item.isCompleted).length;
 
   int get totalItemsCount => items.length;
 

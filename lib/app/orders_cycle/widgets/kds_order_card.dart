@@ -103,7 +103,7 @@ class KdsOrderCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final provider = context.read<KdsProvider>();
+    final provider = context.watch<KdsProvider>();
     final isAr = context.locale.languageCode == 'ar';
     final borderColor = _getBorderColor();
 
@@ -194,7 +194,7 @@ class KdsOrderCard extends StatelessWidget {
 
                         // Order Number `#145`
                         Text(
-                          '#${order.orderNumber}',
+                          '#${order.id}',
                           style: TextStyle(
                             fontSize: 24.sp,
                             fontWeight: FontWeight.w900,
@@ -352,10 +352,12 @@ class KdsOrderCard extends StatelessWidget {
 
   // Items breakdown with checkboxes
   Widget _buildItemsList(KdsProvider provider, bool isAr) {
+    final isStarted = order.status != OrderStatus.newOrder;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (order.totalItemsCount > 1)
+        if (isStarted && order.totalItemsCount > 1)
           Padding(
             padding: EdgeInsets.only(bottom: 8.h),
             child: Container(
@@ -382,26 +384,29 @@ class KdsOrderCard extends StatelessWidget {
             itemBuilder: (context, index) {
               final item = order.items[index];
               return InkWell(
-                onTap: () => provider.toggleItemCompletion(order.id, item.id),
+                onTap: isStarted
+                    ? () => provider.toggleItemCompletion(order.id, item.id)
+                    : null,
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    // Item Checkbox
-                    SizedBox(
-                      width: 20.w,
-                      height: 20.h,
-                      child: Checkbox(
-                        value: item.isCompleted,
-                        activeColor: KdsColors.statusReadyBorder,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(4.r),
+                    // Item Checkbox (only visible after starting preparation)
+                    if (isStarted) ...[
+                      SizedBox(
+                        width: 20.w,
+                        height: 20.h,
+                        child: Checkbox(
+                          value: item.isCompleted,
+                          activeColor: KdsColors.statusReadyBorder,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(4.r),
+                          ),
+                          onChanged: (_) =>
+                              provider.toggleItemCompletion(order.id, item.id),
                         ),
-                        onChanged: (_) =>
-                            provider.toggleItemCompletion(order.id, item.id),
                       ),
-                    ),
-
-                    SizedBox(width: 10.w),
+                      SizedBox(width: 10.w),
+                    ],
 
                     // Item Name & Modifiers
                     Expanded(
@@ -413,10 +418,10 @@ class KdsOrderCard extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 13.sp,
                               fontWeight: FontWeight.bold,
-                              decoration: item.isCompleted
+                              decoration: (isStarted && item.isCompleted)
                                   ? TextDecoration.lineThrough
                                   : TextDecoration.none,
-                              color: item.isCompleted
+                              color: (isStarted && item.isCompleted)
                                   ? KdsColors.textLight
                                   : KdsColors.textDark,
                             ),
@@ -481,8 +486,13 @@ class KdsOrderCard extends StatelessWidget {
       case OrderStatus.lateOrder:
       case OrderStatus.inPreparation:
         label = 'mark_ready'.tr();
-        btnColor = KdsColors.primaryBlue;
-        onPressed = () => provider.markAsReady(order.id);
+        if (order.areAllItemsCompleted) {
+          btnColor = KdsColors.primaryBlue;
+          onPressed = () => provider.markAsReady(order.id);
+        } else {
+          btnColor = const Color(0xFF94A3B8); // Gray color
+          onPressed = null; // Disabled when not all checks completed
+        }
         break;
       case OrderStatus.ready:
         label = 'complete_order'.tr();
@@ -502,6 +512,8 @@ class KdsOrderCard extends StatelessWidget {
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
           backgroundColor: btnColor,
+          disabledBackgroundColor: const Color(0xFF94A3B8),
+          disabledForegroundColor: Colors.white,
           elevation: 0,
           padding: EdgeInsets.symmetric(vertical: 12.h),
           shape: RoundedRectangleBorder(

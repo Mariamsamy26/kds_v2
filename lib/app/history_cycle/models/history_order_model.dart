@@ -11,6 +11,8 @@ class HistoryOrder {
   final String durationMinutes;
   final String customerName;
   final List<KdsOrderItem> items;
+  final DateTime createdAt;
+  final bool isCancelled;
 
   HistoryOrder({
     required this.id,
@@ -23,6 +25,8 @@ class HistoryOrder {
     required this.durationMinutes,
     required this.customerName,
     required this.items,
+    required this.createdAt,
+    this.isCancelled = false,
   });
 }
 
