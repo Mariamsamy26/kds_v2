@@ -6,9 +6,11 @@ import 'dart:convert';
 import 'package:kds/app/orders_cycle/models/kds_order_model.dart';
 import 'package:kds/app/history_cycle/models/history_order_model.dart';
 
-HistoryKdsOrders historyKdsOrdersFromJson(String str) => HistoryKdsOrders.fromJson(json.decode(str));
+HistoryKdsOrders historyKdsOrdersFromJson(String str) =>
+    HistoryKdsOrders.fromJson(json.decode(str));
 
-String historyKdsOrdersToJson(HistoryKdsOrders data) => json.encode(data.toJson());
+String historyKdsOrdersToJson(HistoryKdsOrders data) =>
+    json.encode(data.toJson());
 
 class HistoryKdsOrders {
   int? status;
@@ -16,14 +18,19 @@ class HistoryKdsOrders {
 
   HistoryKdsOrders({this.status, this.data});
 
-  factory HistoryKdsOrders.fromJson(Map<String, dynamic> json) => HistoryKdsOrders(
-    status: json["status"],
-    data: json["data"] == null ? [] : List<Datum>.from(json["data"]!.map((x) => Datum.fromJson(x))),
-  );
+  factory HistoryKdsOrders.fromJson(Map<String, dynamic> json) =>
+      HistoryKdsOrders(
+        status: json["status"],
+        data: json["data"] == null
+            ? []
+            : List<Datum>.from(json["data"]!.map((x) => Datum.fromJson(x))),
+      );
 
   Map<String, dynamic> toJson() => {
     "status": status,
-    "data": data == null ? [] : List<dynamic>.from(data!.map((x) => x.toJson())),
+    "data": data == null
+        ? []
+        : List<dynamic>.from(data!.map((x) => x.toJson())),
   };
 }
 
@@ -112,19 +119,29 @@ class Datum {
     posName: json["pos_name"],
     isTipped: json["is_tipped"],
     tipAmount: json["tip_amount"],
-    dateOrder: json["date_order"] == null ? null : DateTime.parse(json["date_order"]),
+    dateOrder: json["date_order"] == null
+        ? null
+        : DateTime.parse(json["date_order"]),
     amountTax: json["amount_tax"],
     amountTotal: json["amount_total"]?.toDouble(),
     amountPaid: json["amount_paid"]?.toDouble(),
     amountReturn: json["amount_return"],
     refundOrder: json["refund_order"],
-    orderLines: json["order_lines"] == null ? [] : List<OrderLine>.from(json["order_lines"]!.map((x) => OrderLine.fromJson(x))),
-    paymentData:
-        json["payment_data"] == null ? [] : List<PaymentDatum>.from(json["payment_data"]!.map((x) => PaymentDatum.fromJson(x))),
-    invoiceDetails:
-        json["invoice_details"] == null
-            ? []
-            : List<InvoiceDetail>.from(json["invoice_details"]!.map((x) => InvoiceDetail.fromJson(x))),
+    orderLines: json["order_lines"] == null
+        ? []
+        : List<OrderLine>.from(
+            json["order_lines"]!.map((x) => OrderLine.fromJson(x)),
+          ),
+    paymentData: json["payment_data"] == null
+        ? []
+        : List<PaymentDatum>.from(
+            json["payment_data"]!.map((x) => PaymentDatum.fromJson(x)),
+          ),
+    invoiceDetails: json["invoice_details"] == null
+        ? []
+        : List<InvoiceDetail>.from(
+            json["invoice_details"]!.map((x) => InvoiceDetail.fromJson(x)),
+          ),
     orderNumber: json["order_number"],
     isRefunded: json["is_refunded"],
   );
@@ -155,16 +172,23 @@ class Datum {
     "amount_paid": amountPaid,
     "amount_return": amountReturn,
     "refund_order": refundOrder,
-    "order_lines": orderLines == null ? [] : List<dynamic>.from(orderLines!.map((x) => x.toJson())),
-    "payment_data": paymentData == null ? [] : List<dynamic>.from(paymentData!.map((x) => x.toJson())),
-    "invoice_details": invoiceDetails == null ? [] : List<dynamic>.from(invoiceDetails!.map((x) => x.toJson())),
+    "order_lines": orderLines == null
+        ? []
+        : List<dynamic>.from(orderLines!.map((x) => x.toJson())),
+    "payment_data": paymentData == null
+        ? []
+        : List<dynamic>.from(paymentData!.map((x) => x.toJson())),
+    "invoice_details": invoiceDetails == null
+        ? []
+        : List<dynamic>.from(invoiceDetails!.map((x) => x.toJson())),
     "order_number": orderNumber,
     "is_refunded": isRefunded,
   };
 
   HistoryOrder toHistoryOrder() {
     final created = dateOrder ?? DateTime.now();
-    final pickupTimeStr = "${created.hour.toString().padLeft(2, '0')}:${created.minute.toString().padLeft(2, '0')}";
+    final pickupTimeStr =
+        "${created.hour.toString().padLeft(2, '0')}:${created.minute.toString().padLeft(2, '0')}";
 
     OrderStatus statusEnum;
     final statusStr = (kdsStatus ?? state ?? '').toLowerCase();
@@ -174,21 +198,32 @@ class Datum {
       statusEnum = OrderStatus.ready;
     } else if (statusStr == 'late') {
       statusEnum = OrderStatus.lateOrder;
-    } else if (statusStr == 'completed' || statusStr == 'finished' || statusStr == 'done') {
+    } else if (statusStr == 'completed' ||
+        statusStr == 'finished' ||
+        statusStr == 'done') {
       statusEnum = OrderStatus.completed;
     } else {
       statusEnum = OrderStatus.newOrder;
     }
 
-    OrderType typeEnum = (deliveryOrder == true) ? OrderType.delivery : OrderType.dineIn;
+    OrderType typeEnum = (deliveryOrder == true)
+        ? OrderType.delivery
+        : OrderType.dineIn;
 
-    final bool isCancelledOrder = (refundOrder == true) ||
+    final bool isCancelledOrder =
+        (refundOrder == true) ||
         (isRefunded == true) ||
         (statusStr == 'cancel' || statusStr == 'cancelled');
 
     return HistoryOrder(
       id: id?.toString() ?? '',
-      orderNumber: orderNumber ?? name ?? posReference ?? ticketCode ?? id?.toString() ?? '',
+      orderNumber:
+          orderNumber ??
+          name ??
+          posReference ??
+          ticketCode ??
+          id?.toString() ??
+          '',
       type: typeEnum,
       status: statusEnum,
       tableInfoAr: null,
@@ -338,5 +373,10 @@ class PaymentDatum {
     cashJournalId: json["cash_journal_id"],
   );
 
-  Map<String, dynamic> toJson() => {"id": id, "amount": amount, "type": type, "cash_journal_id": cashJournalId};
+  Map<String, dynamic> toJson() => {
+    "id": id,
+    "amount": amount,
+    "type": type,
+    "cash_journal_id": cashJournalId,
+  };
 }

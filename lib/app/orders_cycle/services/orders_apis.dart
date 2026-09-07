@@ -1,5 +1,5 @@
 import 'package:kds/app/orders_cycle/models/current_kds_orders.dart';
-import 'package:kds/app/orders_cycle/models/history_kds_orders.dart';
+import 'package:kds/app/history_cycle/models/history_kds_orders.dart';
 import 'package:kds/app/orders_cycle/models/status_msg_model.dart';
 import 'package:kds/services/dio_client.dart';
 
