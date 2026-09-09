@@ -62,5 +62,7 @@
   "confirm_restore": "Confirm Restore",
   "cancel": "Cancel",
   "no_history_orders": "No orders found in history",
-  "no_orders": "No orders"
+  "no_orders": "No orders",
+  "loading": "Loading...",
+  "export": "Export"
 }

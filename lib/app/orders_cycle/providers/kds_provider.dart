@@ -33,12 +33,23 @@ class KdsProvider extends ChangeNotifier {
     super.dispose();
   }
 
+  /// Orders become "late" after this threshold.
+  static const Duration lateThreshold = Duration(minutes: 60);
+
   void _startTimer() {
     _timer?.cancel();
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       for (var order in _orders) {
-        if (order.status != OrderStatus.completed) {
-          order.elapsedDuration += const Duration(seconds: 1);
+        if (order.status == OrderStatus.completed) continue;
+
+        order.elapsedDuration += const Duration(seconds: 1);
+
+        // Auto-flip to lateOrder once the 60-minute threshold is crossed,
+        // but only for orders that are still new or in-preparation.
+        if (order.elapsedDuration >= lateThreshold &&
+            (order.status == OrderStatus.newOrder ||
+                order.status == OrderStatus.inPreparation)) {
+          order.status = OrderStatus.lateOrder;
         }
       }
       notifyListeners();
