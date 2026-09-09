@@ -356,7 +356,10 @@ class KdsOrderCard extends StatelessWidget {
 
   // Items breakdown with checkboxes
   Widget _buildItemsList(KdsProvider provider, bool isAr) {
-    final isStarted = order.status != OrderStatus.newOrder;
+    // Checkboxes are only visible once the kitchen has started processing the
+    // order (inPreparation). New/late orders that haven't been accepted yet
+    // don't show them. Note: ready orders never reach this method.
+    final isStarted = order.status == OrderStatus.inPreparation;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -483,11 +486,14 @@ class KdsOrderCard extends StatelessWidget {
 
     switch (order.status) {
       case OrderStatus.newOrder:
+      case OrderStatus.lateOrder:
+        // Both new and late orders need to be accepted first — show "Start Prep"
         label = 'start_prep'.tr();
-        btnColor = KdsColors.statusNewBtn;
+        btnColor = order.status == OrderStatus.lateOrder
+            ? KdsColors.statusLateBorder  // red-tinted for urgency
+            : KdsColors.statusNewBtn;
         onPressed = () => provider.startPreparation(order.id);
         break;
-      case OrderStatus.lateOrder:
       case OrderStatus.inPreparation:
         label = 'mark_ready'.tr();
         if (order.areAllItemsCompleted) {

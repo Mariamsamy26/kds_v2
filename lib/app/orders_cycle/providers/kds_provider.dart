@@ -45,10 +45,10 @@ class KdsProvider extends ChangeNotifier {
         order.elapsedDuration += const Duration(seconds: 1);
 
         // Auto-flip to lateOrder once the 60-minute threshold is crossed,
-        // but only for orders that are still new or in-preparation.
+        // but ONLY for orders that have not yet been accepted (newOrder).
+        // inPreparation orders that staff already accepted must NOT be reverted.
         if (order.elapsedDuration >= lateThreshold &&
-            (order.status == OrderStatus.newOrder ||
-                order.status == OrderStatus.inPreparation)) {
+            order.status == OrderStatus.newOrder) {
           order.status = OrderStatus.lateOrder;
         }
       }

@@ -79,6 +79,7 @@ class KdsOrder {
 
   int get totalItemsCount => items.length;
 
+  // Empty items list is treated as "all done" so the button stays enabled.
   bool get areAllItemsCompleted =>
-      items.isNotEmpty && items.every((item) => item.isCompleted);
+      items.isEmpty || items.every((item) => item.isCompleted);
 }
