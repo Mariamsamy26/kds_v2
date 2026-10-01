@@ -78,12 +78,12 @@ class KdsSidebar extends StatelessWidget {
           ),
           SizedBox(height: 8.h),
           _SidebarButton(
-            title: 'late'.tr(),
-            icon: Icons.warning_amber_rounded,
-            count: provider.countLate,
-            badgeColor: KdsColors.statusLateBorder,
-            isSelected: selectedStatus == OrderStatus.lateOrder,
-            onTap: () => provider.setStatusFilter(OrderStatus.lateOrder),
+            title: 'in_preparation'.tr(),
+            icon: Icons.soup_kitchen_outlined,
+            count: provider.countInPrep,
+            badgeColor: KdsColors.statusPrepBorder,
+            isSelected: selectedStatus == OrderStatus.inPreparation,
+            onTap: () => provider.setStatusFilter(OrderStatus.inPreparation),
           ),
           SizedBox(height: 8.h),
           _SidebarButton(
@@ -95,25 +95,23 @@ class KdsSidebar extends StatelessWidget {
             onTap: () => provider.setStatusFilter(OrderStatus.newOrder),
           ),
           SizedBox(height: 8.h),
-
           _SidebarButton(
-            title: 'in_preparation'.tr(),
-            icon: Icons.soup_kitchen_outlined,
-            count: provider.countInPrep,
-            badgeColor: KdsColors.statusPrepBorder,
-            isSelected: selectedStatus == OrderStatus.inPreparation,
-            onTap: () => provider.setStatusFilter(OrderStatus.inPreparation),
+            title: 'late'.tr(),
+            icon: Icons.warning_amber_rounded,
+            count: provider.countLate,
+            badgeColor: KdsColors.statusLateBorder,
+            isSelected: selectedStatus == OrderStatus.lateOrder,
+            onTap: () => provider.setStatusFilter(OrderStatus.lateOrder),
           ),
           SizedBox(height: 8.h),
-
-          _SidebarButton(
-            title: 'ready'.tr(),
-            icon: Icons.check_circle_outline,
-            count: provider.countReady,
-            badgeColor: KdsColors.statusReadyBorder,
-            isSelected: selectedStatus == OrderStatus.ready,
-            onTap: () => provider.setStatusFilter(OrderStatus.ready),
-          ),
+          // _SidebarButton(
+          //   title: 'ready'.tr(),
+          //   icon: Icons.check_circle_outline,
+          //   count: provider.countReady,
+          //   badgeColor: KdsColors.statusReadyBorder,
+          //   isSelected: selectedStatus == OrderStatus.ready,
+          //   onTap: () => provider.setStatusFilter(OrderStatus.ready),
+          // ),
 
           const Spacer(),
 

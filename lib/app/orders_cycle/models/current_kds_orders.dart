@@ -198,58 +198,56 @@ class Datum {
     List<OrderLine>? orderLines,
     List<PaymentDatum>? paymentData,
     List<InvoiceDetail>? invoiceDetails,
-  }) =>
-      Datum(
-        id: id ?? this.id,
-        name: name ?? this.name,
-        state: state ?? this.state,
-        kdsStatus: kdsStatus ?? this.kdsStatus,
-        cashierId: cashierId ?? this.cashierId,
-        cashier: cashier ?? this.cashier,
-        customerId: customerId ?? this.customerId,
-        customerName: customerName ?? this.customerName,
-        customerPhone: customerPhone ?? this.customerPhone,
-        customerAddress: customerAddress ?? this.customerAddress,
-        waiterName: waiterName ?? this.waiterName,
-        deliveryOrder: deliveryOrder ?? this.deliveryOrder,
-        posReference: posReference ?? this.posReference,
-        ticketCode: ticketCode ?? this.ticketCode,
-        sessionId: sessionId ?? this.sessionId,
-        sessionName: sessionName ?? this.sessionName,
-        sessionState: sessionState ?? this.sessionState,
-        posId: posId ?? this.posId,
-        posName: posName ?? this.posName,
-        branchId: branchId ?? this.branchId,
-        isTipped: isTipped ?? this.isTipped,
-        tipAmount: tipAmount ?? this.tipAmount,
-        dateOrder: dateOrder ?? this.dateOrder,
-        amountTax: amountTax ?? this.amountTax,
-        amountTotal: amountTotal ?? this.amountTotal,
-        amountPaid: amountPaid ?? this.amountPaid,
-        amountReturn: amountReturn ?? this.amountReturn,
-        refundOrder: refundOrder ?? this.refundOrder,
-        isRefunded: isRefunded ?? this.isRefunded,
-        toInvoice: toInvoice ?? this.toInvoice,
-        isKioskOrder: isKioskOrder ?? this.isKioskOrder,
-        isArchived: isArchived ?? this.isArchived,
-        orderNumber: orderNumber ?? this.orderNumber,
-        retailOrder: retailOrder ?? this.retailOrder,
-        restaurantOrder: restaurantOrder ?? this.restaurantOrder,
-        tableId: tableId ?? this.tableId,
-        tableNumber: tableNumber ?? this.tableNumber,
-        customerCount: customerCount ?? this.customerCount,
-        floorId: floorId ?? this.floorId,
-        isMergedOrder: isMergedOrder ?? this.isMergedOrder,
-        mergedWithTableId: mergedWithTableId ?? this.mergedWithTableId,
-        mergedWithTableNumber:
-            mergedWithTableNumber ?? this.mergedWithTableNumber,
-        isSplitOrder: isSplitOrder ?? this.isSplitOrder,
-        splitParentOrderId: splitParentOrderId ?? this.splitParentOrderId,
-        splitParentOrderName: splitParentOrderName ?? this.splitParentOrderName,
-        orderLines: orderLines ?? this.orderLines,
-        paymentData: paymentData ?? this.paymentData,
-        invoiceDetails: invoiceDetails ?? this.invoiceDetails,
-      );
+  }) => Datum(
+    id: id ?? this.id,
+    name: name ?? this.name,
+    state: state ?? this.state,
+    kdsStatus: kdsStatus ?? this.kdsStatus,
+    cashierId: cashierId ?? this.cashierId,
+    cashier: cashier ?? this.cashier,
+    customerId: customerId ?? this.customerId,
+    customerName: customerName ?? this.customerName,
+    customerPhone: customerPhone ?? this.customerPhone,
+    customerAddress: customerAddress ?? this.customerAddress,
+    waiterName: waiterName ?? this.waiterName,
+    deliveryOrder: deliveryOrder ?? this.deliveryOrder,
+    posReference: posReference ?? this.posReference,
+    ticketCode: ticketCode ?? this.ticketCode,
+    sessionId: sessionId ?? this.sessionId,
+    sessionName: sessionName ?? this.sessionName,
+    sessionState: sessionState ?? this.sessionState,
+    posId: posId ?? this.posId,
+    posName: posName ?? this.posName,
+    branchId: branchId ?? this.branchId,
+    isTipped: isTipped ?? this.isTipped,
+    tipAmount: tipAmount ?? this.tipAmount,
+    dateOrder: dateOrder ?? this.dateOrder,
+    amountTax: amountTax ?? this.amountTax,
+    amountTotal: amountTotal ?? this.amountTotal,
+    amountPaid: amountPaid ?? this.amountPaid,
+    amountReturn: amountReturn ?? this.amountReturn,
+    refundOrder: refundOrder ?? this.refundOrder,
+    isRefunded: isRefunded ?? this.isRefunded,
+    toInvoice: toInvoice ?? this.toInvoice,
+    isKioskOrder: isKioskOrder ?? this.isKioskOrder,
+    isArchived: isArchived ?? this.isArchived,
+    orderNumber: orderNumber ?? this.orderNumber,
+    retailOrder: retailOrder ?? this.retailOrder,
+    restaurantOrder: restaurantOrder ?? this.restaurantOrder,
+    tableId: tableId ?? this.tableId,
+    tableNumber: tableNumber ?? this.tableNumber,
+    customerCount: customerCount ?? this.customerCount,
+    floorId: floorId ?? this.floorId,
+    isMergedOrder: isMergedOrder ?? this.isMergedOrder,
+    mergedWithTableId: mergedWithTableId ?? this.mergedWithTableId,
+    mergedWithTableNumber: mergedWithTableNumber ?? this.mergedWithTableNumber,
+    isSplitOrder: isSplitOrder ?? this.isSplitOrder,
+    splitParentOrderId: splitParentOrderId ?? this.splitParentOrderId,
+    splitParentOrderName: splitParentOrderName ?? this.splitParentOrderName,
+    orderLines: orderLines ?? this.orderLines,
+    paymentData: paymentData ?? this.paymentData,
+    invoiceDetails: invoiceDetails ?? this.invoiceDetails,
+  );
 
   factory Datum.fromJson(Map<String, dynamic> json) => Datum(
     id: _toInt(json["id"]),
@@ -387,8 +385,6 @@ class Datum {
       statusEnum = OrderStatus.ready;
     } else if (statusStr == 'late') {
       statusEnum = OrderStatus.lateOrder;
-    } else if (statusStr == 'completed' || statusStr == 'finished') {
-      statusEnum = OrderStatus.completed;
     } else {
       statusEnum = OrderStatus.newOrder;
     }
@@ -412,15 +408,16 @@ class Datum {
         ? 'Table $tableNumber'
         : ((tableId != null && tableId != 0) ? 'Table $tableId' : null);
 
-    final String finalOrderNum = (orderNumber != null && orderNumber!.trim().isNotEmpty)
+    final String finalOrderNum =
+        (orderNumber != null && orderNumber!.trim().isNotEmpty)
         ? orderNumber!.trim()
         : ((name != null && name!.trim().isNotEmpty)
-            ? name!.trim()
-            : ((posReference != null && posReference!.trim().isNotEmpty)
-                ? posReference!.trim()
-                : ((ticketCode != null && ticketCode!.trim().isNotEmpty)
-                    ? ticketCode!.trim()
-                    : (id?.toString() ?? ''))));
+              ? name!.trim()
+              : ((posReference != null && posReference!.trim().isNotEmpty)
+                    ? posReference!.trim()
+                    : ((ticketCode != null && ticketCode!.trim().isNotEmpty)
+                          ? ticketCode!.trim()
+                          : (id?.toString() ?? ''))));
 
     return KdsOrder(
       id: id?.toString() ?? '',
@@ -443,16 +440,20 @@ class Datum {
         final note = (line.kitchenNote != null && line.kitchenNote!.isNotEmpty)
             ? line.kitchenNote
             : line.customerNote;
-        final nameAr = (line.productNameAr != null && line.productNameAr!.isNotEmpty)
+        final nameAr =
+            (line.productNameAr != null && line.productNameAr!.isNotEmpty)
             ? line.productNameAr!
-            : ((line.fullProductName != null && line.fullProductName!.isNotEmpty)
-                ? line.fullProductName!
-                : (line.productName ?? ''));
-        final nameEn = (line.productName != null && line.productName!.isNotEmpty)
+            : ((line.fullProductName != null &&
+                      line.fullProductName!.isNotEmpty)
+                  ? line.fullProductName!
+                  : (line.productName ?? ''));
+        final nameEn =
+            (line.productName != null && line.productName!.isNotEmpty)
             ? line.productName!
-            : ((line.fullProductName != null && line.fullProductName!.isNotEmpty)
-                ? line.fullProductName!
-                : (line.productNameAr ?? ''));
+            : ((line.fullProductName != null &&
+                      line.fullProductName!.isNotEmpty)
+                  ? line.fullProductName!
+                  : (line.productNameAr ?? ''));
         return KdsOrderItem(
           id: line.id?.toString() ?? '',
           nameAr: nameAr,
@@ -505,26 +506,27 @@ class InvoiceDetail {
     double? total,
     double? amountDue,
     List<dynamic>? paymentJournals,
-  }) =>
-      InvoiceDetail(
-        id: id ?? this.id,
-        reference: reference ?? this.reference,
-        orderRef: orderRef ?? this.orderRef,
-        state: state ?? this.state,
-        date: date ?? this.date,
-        untaxedAmount: untaxedAmount ?? this.untaxedAmount,
-        taxes: taxes ?? this.taxes,
-        total: total ?? this.total,
-        amountDue: amountDue ?? this.amountDue,
-        paymentJournals: paymentJournals ?? this.paymentJournals,
-      );
+  }) => InvoiceDetail(
+    id: id ?? this.id,
+    reference: reference ?? this.reference,
+    orderRef: orderRef ?? this.orderRef,
+    state: state ?? this.state,
+    date: date ?? this.date,
+    untaxedAmount: untaxedAmount ?? this.untaxedAmount,
+    taxes: taxes ?? this.taxes,
+    total: total ?? this.total,
+    amountDue: amountDue ?? this.amountDue,
+    paymentJournals: paymentJournals ?? this.paymentJournals,
+  );
 
   factory InvoiceDetail.fromJson(Map<String, dynamic> json) => InvoiceDetail(
     id: _toInt(json["id"]),
     reference: json["reference"],
     orderRef: json["order_ref"],
     state: json["state"],
-    date: json["date"] == null ? null : DateTime.tryParse(json["date"].toString()),
+    date: json["date"] == null
+        ? null
+        : DateTime.tryParse(json["date"].toString()),
     untaxedAmount: _toDouble(json["untaxed_amount"]),
     taxes: _toDouble(json["taxes"]),
     total: _toDouble(json["total"]),
@@ -627,32 +629,31 @@ class OrderLine {
     String? customerNote,
     String? kitchenNote,
     bool? isVariant,
-  }) =>
-      OrderLine(
-        id: id ?? this.id,
-        orderId: orderId ?? this.orderId,
-        productId: productId ?? this.productId,
-        fullProductName: fullProductName ?? this.fullProductName,
-        productName: productName ?? this.productName,
-        productNameAr: productNameAr ?? this.productNameAr,
-        priceUnit: priceUnit ?? this.priceUnit,
-        qty: qty ?? this.qty,
-        priceSubtotal: priceSubtotal ?? this.priceSubtotal,
-        priceSubtotalIncl: priceSubtotalIncl ?? this.priceSubtotalIncl,
-        discount: discount ?? this.discount,
-        taxIds: taxIds ?? this.taxIds,
-        taxes: taxes ?? this.taxes,
-        taxPercent: taxPercent ?? this.taxPercent,
-        productSellingType: productSellingType ?? this.productSellingType,
-        priceType: priceType ?? this.priceType,
-        uuid: uuid ?? this.uuid,
-        lineTimestamp: lineTimestamp ?? this.lineTimestamp,
-        attachedProductId: attachedProductId ?? this.attachedProductId,
-        uomName: uomName ?? this.uomName,
-        customerNote: customerNote ?? this.customerNote,
-        kitchenNote: kitchenNote ?? this.kitchenNote,
-        isVariant: isVariant ?? this.isVariant,
-      );
+  }) => OrderLine(
+    id: id ?? this.id,
+    orderId: orderId ?? this.orderId,
+    productId: productId ?? this.productId,
+    fullProductName: fullProductName ?? this.fullProductName,
+    productName: productName ?? this.productName,
+    productNameAr: productNameAr ?? this.productNameAr,
+    priceUnit: priceUnit ?? this.priceUnit,
+    qty: qty ?? this.qty,
+    priceSubtotal: priceSubtotal ?? this.priceSubtotal,
+    priceSubtotalIncl: priceSubtotalIncl ?? this.priceSubtotalIncl,
+    discount: discount ?? this.discount,
+    taxIds: taxIds ?? this.taxIds,
+    taxes: taxes ?? this.taxes,
+    taxPercent: taxPercent ?? this.taxPercent,
+    productSellingType: productSellingType ?? this.productSellingType,
+    priceType: priceType ?? this.priceType,
+    uuid: uuid ?? this.uuid,
+    lineTimestamp: lineTimestamp ?? this.lineTimestamp,
+    attachedProductId: attachedProductId ?? this.attachedProductId,
+    uomName: uomName ?? this.uomName,
+    customerNote: customerNote ?? this.customerNote,
+    kitchenNote: kitchenNote ?? this.kitchenNote,
+    isVariant: isVariant ?? this.isVariant,
+  );
 
   factory OrderLine.fromJson(Map<String, dynamic> json) => OrderLine(
     id: _toInt(json["id"]),
@@ -722,13 +723,12 @@ class PaymentDatum {
     double? amount,
     String? type,
     int? cashJournalId,
-  }) =>
-      PaymentDatum(
-        id: id ?? this.id,
-        amount: amount ?? this.amount,
-        type: type ?? this.type,
-        cashJournalId: cashJournalId ?? this.cashJournalId,
-      );
+  }) => PaymentDatum(
+    id: id ?? this.id,
+    amount: amount ?? this.amount,
+    type: type ?? this.type,
+    cashJournalId: cashJournalId ?? this.cashJournalId,
+  );
 
   factory PaymentDatum.fromJson(Map<String, dynamic> json) => PaymentDatum(
     id: _toInt(json["id"]),

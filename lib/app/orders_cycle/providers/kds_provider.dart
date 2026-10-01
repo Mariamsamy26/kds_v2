@@ -46,6 +46,7 @@ class KdsProvider extends ChangeNotifier {
   void _startTimer() {
     _timer?.cancel();
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      bool statusChanged = false;
       for (var order in _orders) {
         if (order.status == OrderStatus.completed) continue;
 
@@ -57,7 +58,11 @@ class KdsProvider extends ChangeNotifier {
         if (order.elapsedDuration >= lateThreshold &&
             order.status == OrderStatus.newOrder) {
           order.status = OrderStatus.lateOrder;
+          statusChanged = true;
         }
+      }
+      if (statusChanged) {
+        _orders.sort(_compareOrders);
       }
       notifyListeners();
     });
@@ -107,6 +112,11 @@ class KdsProvider extends ChangeNotifier {
             if (existing.status == OrderStatus.inPreparation &&
                 newOrder.status == OrderStatus.newOrder) {
               newOrder.status = OrderStatus.inPreparation;
+            } else if (existing.status == OrderStatus.ready &&
+                newOrder.status == OrderStatus.newOrder) {
+              newOrder.status = OrderStatus.ready;
+            } else if (existing.status == OrderStatus.completed) {
+              newOrder.status = OrderStatus.completed;
             }
           }
 
@@ -132,6 +142,7 @@ class KdsProvider extends ChangeNotifier {
           }
         }
 
+        newOrders.sort(_compareOrders);
         _orders = newOrders;
       } else {
         _orders = [];
@@ -173,7 +184,7 @@ class KdsProvider extends ChangeNotifier {
   }
 
   List<KdsOrder> get filteredOrders {
-    return _orders.where((o) {
+    final list = _orders.where((o) {
       if (o.status == OrderStatus.completed) return false;
       if (_selectedFilter != OrderType.all && o.type != _selectedFilter) {
         return false;
@@ -183,6 +194,9 @@ class KdsProvider extends ChangeNotifier {
       }
       return true;
     }).toList();
+
+    list.sort(_compareOrders);
+    return list;
   }
 
   int get countAll =>
@@ -222,6 +236,7 @@ class KdsProvider extends ChangeNotifier {
         final orderIndex = _orders.indexWhere((o) => o.id == orderId);
         if (orderIndex != -1) {
           _orders[orderIndex].status = OrderStatus.inPreparation;
+          _orders.sort(_compareOrders);
           notifyListeners();
         }
       }
@@ -278,6 +293,41 @@ class KdsProvider extends ChangeNotifier {
 
   void addOrder(KdsOrder order) {
     _orders.add(order);
+    _orders.sort(_compareOrders);
     notifyListeners();
+  }
+
+  int _getStatusPriority(OrderStatus status) {
+    switch (status) {
+      case OrderStatus.inPreparation:
+        return 0; // Prepare state UP (at the top/beginning)
+      case OrderStatus.ready:
+        return 1;
+      case OrderStatus.lateOrder:
+        return 2;
+      case OrderStatus.newOrder:
+        return 3; // New orders added at the end
+      case OrderStatus.completed:
+        return 4;
+    }
+  }
+
+  int _compareOrders(KdsOrder a, KdsOrder b) {
+    final priorityA = _getStatusPriority(a.status);
+    final priorityB = _getStatusPriority(b.status);
+    if (priorityA != priorityB) {
+      return priorityA.compareTo(priorityB);
+    }
+
+    // Within the same status, sort chronologically: older orders first, newer orders at the end
+    final dateComp = a.createdAt.compareTo(b.createdAt);
+    if (dateComp != 0) {
+      return dateComp;
+    }
+
+    // Fallback: compare by ID numerically so smaller/older ID is first, newer ID at the end
+    final idA = int.tryParse(a.id) ?? 0;
+    final idB = int.tryParse(b.id) ?? 0;
+    return idA.compareTo(idB);
   }
 }
