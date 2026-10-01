@@ -1,18 +1,23 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:kds/app/orders_cycle/models/kds_order_model.dart';
+import 'package:kds/app/orders_cycle/models/status_msg_model.dart';
 import 'package:kds/app/orders_cycle/services/orders_apis.dart';
 
 class KdsProvider extends ChangeNotifier {
+  final int branchId = 1;
+
   OrderType _selectedFilter = OrderType.all;
   OrderStatus? _selectedStatusFilter; // null means All Orders
   String _selectedStation = '1';
   bool _isLive = true;
   Timer? _timer;
+  Timer? _refreshTimer;
   bool _isLoading = false;
   String? _errorMessage;
 
   List<KdsOrder> _orders = [];
+  final Map<String, Set<String>> _completedItemsByOrder = {};
   final OrdersApis _ordersApis = OrdersApis();
 
   OrderType get selectedFilter => _selectedFilter;
@@ -25,11 +30,13 @@ class KdsProvider extends ChangeNotifier {
   KdsProvider() {
     fetchOrders();
     _startTimer();
+    _startAutoRefreshTimer();
   }
 
   @override
   void dispose() {
     _timer?.cancel();
+    _refreshTimer?.cancel();
     super.dispose();
   }
 
@@ -56,24 +63,85 @@ class KdsProvider extends ChangeNotifier {
     });
   }
 
-  Future<void> fetchOrders({int posId = 0}) async {
-    _isLoading = true;
-    _errorMessage = null;
-    notifyListeners();
+  void _startAutoRefreshTimer() {
+    _refreshTimer?.cancel();
+    _refreshTimer = Timer.periodic(const Duration(seconds: 10), (timer) {
+      if (_isLive) {
+        fetchOrders(isSilent: true);
+      }
+    });
+  }
+
+  Future<void> fetchOrders({
+    int? branchId,
+    int posId = 0,
+    bool isSilent = false,
+  }) async {
+    final effectiveBranchId = (branchId != null && branchId != 0)
+        ? branchId
+        : (posId != 0 ? posId : this.branchId);
+    if (!isSilent) {
+      _isLoading = true;
+      _errorMessage = null;
+      notifyListeners();
+    }
 
     try {
-      final currentKdsOrders = await _ordersApis.getCurrentKDSOrders(posId);
+      final currentKdsOrders = await _ordersApis.getCurrentKDSOrders(
+        effectiveBranchId,
+      );
       if (currentKdsOrders != null && currentKdsOrders.data != null) {
-        _orders = currentKdsOrders.data!
+        final newOrders = currentKdsOrders.data!
             .map((datum) => datum.toKdsOrder())
             .toList();
+
+        // Preserve elapsed durations and item completion states for existing orders
+        for (var newOrder in newOrders) {
+          final existing = _orders.firstWhere(
+            (o) => o.id == newOrder.id,
+            orElse: () => newOrder,
+          );
+          if (existing != newOrder) {
+            newOrder.elapsedDuration = existing.elapsedDuration;
+
+            if (existing.status == OrderStatus.inPreparation &&
+                newOrder.status == OrderStatus.newOrder) {
+              newOrder.status = OrderStatus.inPreparation;
+            }
+          }
+
+          // Apply and preserve finished (isCompleted) state for each item
+          final savedCompleted = _completedItemsByOrder[newOrder.id];
+          for (var item in newOrder.items) {
+            if (savedCompleted != null && savedCompleted.contains(item.id)) {
+              item.isCompleted = true;
+            } else if (existing != newOrder) {
+              final existingItem = existing.items.firstWhere(
+                (e) =>
+                    (e.id.isNotEmpty && e.id == item.id) ||
+                    (e.nameEn == item.nameEn && e.nameAr == item.nameAr),
+                orElse: () => item,
+              );
+              if (existingItem != item && existingItem.isCompleted) {
+                item.isCompleted = true;
+                _completedItemsByOrder
+                    .putIfAbsent(newOrder.id, () => {})
+                    .add(item.id);
+              }
+            }
+          }
+        }
+
+        _orders = newOrders;
       } else {
         _orders = [];
       }
     } catch (e) {
       _errorMessage = e.toString();
     } finally {
-      _isLoading = false;
+      if (!isSilent) {
+        _isLoading = false;
+      }
       notifyListeners();
     }
   }
@@ -97,6 +165,9 @@ class KdsProvider extends ChangeNotifier {
     _isLive = !_isLive;
     if (_isLive) {
       fetchOrders();
+      _startAutoRefreshTimer();
+    } else {
+      _refreshTimer?.cancel();
     }
     notifyListeners();
   }
@@ -143,59 +214,42 @@ class KdsProvider extends ChangeNotifier {
   int get countLate =>
       _orders.where((o) => o.status == OrderStatus.lateOrder).length;
 
-  Future<void> startPreparation(String orderId) async {
+  Future<StatusMsgModel?> startPreparation(String orderId) async {
     final intId = int.tryParse(orderId);
     if (intId != null) {
-      try {
-        await _ordersApis.prepareAcceptedOrder(intId);
-      } catch (e) {
-        debugPrint("Error preparing order $orderId: $e");
-      }
-    }
-    final orderIndex = _orders.indexWhere((o) => o.id == orderId);
-    if (orderIndex != -1) {
-      _orders[orderIndex].status = OrderStatus.inPreparation;
-      notifyListeners();
-    }
-  }
-
-  Future<void> markAsReady(String orderId) async {
-    final orderIndex = _orders.indexWhere((o) => o.id == orderId);
-    if (orderIndex != -1) {
-      final order = _orders[orderIndex];
-      if (!order.areAllItemsCompleted && order.items.isNotEmpty) {
-        return;
-      }
-      final intId = int.tryParse(orderId);
-      if (intId != null) {
-        try {
-          await _ordersApis.finishPreparedOrder(intId);
-        } catch (e) {
-          debugPrint("Error finishing order $orderId: $e");
+      final result = await _ordersApis.prepareAcceptedOrder(intId, branchId);
+      if (result != null && result.status == 1) {
+        final orderIndex = _orders.indexWhere((o) => o.id == orderId);
+        if (orderIndex != -1) {
+          _orders[orderIndex].status = OrderStatus.inPreparation;
+          notifyListeners();
         }
       }
-      order.status = OrderStatus.ready;
-      for (var item in order.items) {
-        item.isCompleted = true;
-      }
-      notifyListeners();
+      return result;
     }
+    return null;
   }
 
-  Future<void> completeOrder(String orderId) async {
+  Future<StatusMsgModel?> completeOrder(String orderId) async {
     final intId = int.tryParse(orderId);
     if (intId != null) {
-      try {
-        await _ordersApis.finishPreparedOrder(intId);
-      } catch (e) {
-        debugPrint("Error completing order $orderId: $e");
+      final result = await _ordersApis.finishPreparedOrder(intId, branchId);
+      if (result != null && result.status == 1) {
+        final orderIndex = _orders.indexWhere((o) => o.id == orderId);
+        if (orderIndex != -1) {
+          _orders[orderIndex].status = OrderStatus.completed;
+          for (var item in _orders[orderIndex].items) {
+            item.isCompleted = true;
+          }
+          _completedItemsByOrder
+              .putIfAbsent(orderId, () => {})
+              .addAll(_orders[orderIndex].items.map((i) => i.id));
+          notifyListeners();
+        }
       }
+      return result;
     }
-    final orderIndex = _orders.indexWhere((o) => o.id == orderId);
-    if (orderIndex != -1) {
-      _orders[orderIndex].status = OrderStatus.completed;
-      notifyListeners();
-    }
+    return null;
   }
 
   void toggleItemCompletion(String orderId, String itemId) {
@@ -204,8 +258,13 @@ class KdsProvider extends ChangeNotifier {
       final order = _orders[orderIndex];
       final itemIndex = order.items.indexWhere((i) => i.id == itemId);
       if (itemIndex != -1) {
-        order.items[itemIndex].isCompleted =
-            !order.items[itemIndex].isCompleted;
+        final newStatus = !order.items[itemIndex].isCompleted;
+        order.items[itemIndex].isCompleted = newStatus;
+        if (newStatus) {
+          _completedItemsByOrder.putIfAbsent(orderId, () => {}).add(itemId);
+        } else {
+          _completedItemsByOrder[orderId]?.remove(itemId);
+        }
         notifyListeners();
       }
     }
@@ -215,5 +274,10 @@ class KdsProvider extends ChangeNotifier {
     _selectedStatusFilter = null;
     _selectedFilter = OrderType.all;
     fetchOrders();
+  }
+
+  void addOrder(KdsOrder order) {
+    _orders.add(order);
+    notifyListeners();
   }
 }

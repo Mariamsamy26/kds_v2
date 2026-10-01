@@ -57,6 +57,7 @@ class KdsOrder {
   final DateTime createdAt;
   Duration elapsedDuration;
   final List<KdsOrderItem> items;
+  final int? branchId;
 
   KdsOrder({
     required this.id,
@@ -73,6 +74,7 @@ class KdsOrder {
     required this.createdAt,
     required this.elapsedDuration,
     required this.items,
+    this.branchId,
   });
 
   int get completedItemsCount => items.where((item) => item.isCompleted).length;

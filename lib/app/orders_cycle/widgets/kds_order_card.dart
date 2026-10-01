@@ -2,6 +2,9 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
+import '../../../helpers/api_helper.dart';
+import '../../../widget/error_dialog_api.dart';
+import '../models/status_msg_model.dart';
 import '../../../styles/kds_colors.dart';
 import '../models/kds_order_model.dart';
 import '../providers/kds_provider.dart';
@@ -310,7 +313,7 @@ class KdsOrderCard extends StatelessWidget {
           ),
 
           // Card Footer Action Button
-          _buildActionButton(provider),
+          _buildActionButton(context, provider),
         ],
       ),
     );
@@ -478,8 +481,26 @@ class KdsOrderCard extends StatelessWidget {
     );
   }
 
+  void _showApiError(BuildContext context, StatusMsgModel result) {
+    final details =
+        'Status: ${result.status}\nMessage: ${result.message ?? ''}${result.messageAr != null ? '\nMessageAr: ${result.messageAr}' : ''}';
+    debugPrint('API Error: $details');
+    showDialog(
+      context: context,
+      builder: (dialogContext) => ApiErrorDialog(
+        message: result.message?.isNotEmpty == true
+            ? result.message!
+            : 'error'.tr(),
+        errorDetails: details,
+        onPressed: () {
+          Navigator.of(dialogContext).pop();
+        },
+      ),
+    );
+  }
+
   // Footer Action Button
-  Widget _buildActionButton(KdsProvider provider) {
+  Widget _buildActionButton(BuildContext context, KdsProvider provider) {
     String label = '';
     Color btnColor = KdsColors.primaryBlue;
     VoidCallback? onPressed;
@@ -490,24 +511,47 @@ class KdsOrderCard extends StatelessWidget {
         // Both new and late orders need to be accepted first — show "Start Prep"
         label = 'start_prep'.tr();
         btnColor = order.status == OrderStatus.lateOrder
-            ? KdsColors.statusLateBorder  // red-tinted for urgency
+            ? KdsColors
+                  .statusLateBorder // red-tinted for urgency
             : KdsColors.statusNewBtn;
-        onPressed = () => provider.startPreparation(order.id);
+        onPressed = () async {
+          await ApiHelper.runApiWithLoading<StatusMsgModel>(
+            context: context,
+            request: () =>
+                context.read<KdsProvider>().startPreparation(order.id),
+            onSuccess: (result) {
+              if (result.status == 1) {
+                // Success - order status updated in provider
+              } else {
+                _showApiError(context, result);
+              }
+            },
+          );
+        };
         break;
       case OrderStatus.inPreparation:
-        label = 'mark_ready'.tr();
+      case OrderStatus.ready:
+        label = 'complete_order'.tr();
         if (order.areAllItemsCompleted) {
-          btnColor = KdsColors.primaryBlue;
-          onPressed = () => provider.markAsReady(order.id);
+          btnColor = KdsColors.statusReadyBtn;
+          onPressed = () async {
+            await ApiHelper.runApiWithLoading<StatusMsgModel>(
+              context: context,
+              request: () =>
+                  context.read<KdsProvider>().completeOrder(order.id),
+              onSuccess: (result) {
+                if (result.status == 1) {
+                  // Success - order status updated in provider
+                } else {
+                  _showApiError(context, result);
+                }
+              },
+            );
+          };
         } else {
           btnColor = const Color(0xFF94A3B8); // Gray color
           onPressed = null; // Disabled when not all checks completed
         }
-        break;
-      case OrderStatus.ready:
-        label = 'complete_order'.tr();
-        btnColor = KdsColors.statusReadyBtn;
-        onPressed = () => provider.completeOrder(order.id);
         break;
       case OrderStatus.completed:
         label = 'completed'.tr();

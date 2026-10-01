@@ -4,8 +4,8 @@ import 'package:kds/app/orders_cycle/models/status_msg_model.dart';
 import 'package:kds/services/dio_client.dart';
 
 class OrdersApis {
-  Future<CurrentKdsOrders?> getCurrentKDSOrders(int posId) async {
-    String url = 'http://157.180.26.238:10000/get_KDS_orders';
+  Future<CurrentKdsOrders?> getCurrentKDSOrders(int branchId) async {
+    String url = 'http://46.62.153.179:12000/get_KDS_orders/$branchId';
 
     try {
       final response = await Client.client.get(url);
@@ -23,8 +23,12 @@ class OrdersApis {
     }
   }
 
-  Future<StatusMsgModel?> prepareAcceptedOrder(int orderId) async {
-    String url = 'http://157.180.26.238:10000/prepare_kds_order/$orderId';
+  Future<StatusMsgModel?> prepareAcceptedOrder(
+    int orderId,
+    int branchId,
+  ) async {
+    String url =
+        'http://46.62.153.179:12000/prepare_kds_order/$orderId/$branchId';
 
     try {
       final response = await Client.client.get(url);
@@ -40,8 +44,9 @@ class OrdersApis {
     }
   }
 
-  Future<StatusMsgModel?> finishPreparedOrder(int orderId) async {
-    String url = 'http://157.180.26.238:10000/finish_kds_order/$orderId';
+  Future<StatusMsgModel?> finishPreparedOrder(int orderId, int branchId) async {
+    String url =
+        'http://46.62.153.179:12000/finish_kds_order/$orderId/$branchId';
 
     try {
       final response = await Client.client.get(url);
@@ -57,8 +62,8 @@ class OrdersApis {
     }
   }
 
-  Future<HistoryKdsOrders?> getHistoryKDSOrders(int posId) async {
-    String url = 'http://157.180.26.238:10000/get_KDS_history_orders';
+  Future<HistoryKdsOrders?> getHistoryKDSOrders(int branchId) async {
+    String url = 'http://46.62.153.179:12000/get_KDS_history_orders/$branchId';
 
     try {
       final response = await Client.client.get(url);

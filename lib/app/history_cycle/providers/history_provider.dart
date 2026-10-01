@@ -1,10 +1,16 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:kds/app/orders_cycle/models/kds_order_model.dart';
+import 'package:kds/app/orders_cycle/models/status_msg_model.dart';
 import 'package:kds/app/orders_cycle/providers/kds_provider.dart';
 import 'package:kds/app/orders_cycle/services/orders_apis.dart';
 import '../models/history_order_model.dart';
+import '../models/history_kds_orders.dart';
 
 class HistoryProvider extends ChangeNotifier {
+  int _currentBranchId = 1;
+  Timer? _refreshTimer;
+
   String _searchQuery = '';
   OrderType _selectedTypeFilter = OrderType.all;
 
@@ -26,15 +32,19 @@ class HistoryProvider extends ChangeNotifier {
   OrderType get selectedTypeFilter => _selectedTypeFilter;
   DateTimeRange get selectedDateRange => _selectedDateRange;
   String? get restoringOrderId => _restoringOrderId;
+  int get currentBranchId => _currentBranchId;
+  List<HistoryOrder> get historyOrders => _historyOrders;
 
   HistoryMetrics get metrics {
     final list = filteredHistoryOrders;
     final total = list.length;
-    final completed =
-        list.where((o) => o.status == OrderStatus.completed).length;
+    final completed = list
+        .where((o) => o.status == OrderStatus.completed)
+        .length;
     final cancelled = list.where((o) => o.isCancelled).length;
-    final lateCount =
-        list.where((o) => o.status == OrderStatus.lateOrder).length;
+    final lateCount = list
+        .where((o) => o.status == OrderStatus.lateOrder)
+        .length;
 
     int totalMinutes = 0;
     int countWithDuration = 0;
@@ -49,8 +59,9 @@ class HistoryProvider extends ChangeNotifier {
       }
     }
 
-    final avgMinutes =
-        countWithDuration > 0 ? (totalMinutes / countWithDuration).round() : 0;
+    final avgMinutes = countWithDuration > 0
+        ? (totalMinutes / countWithDuration).round()
+        : 0;
     const targetAvg = 15;
     final prepDiff = avgMinutes > 0 ? (avgMinutes - targetAvg) : 0;
     final lateRate = total > 0 ? (lateCount / total) * 100.0 : 0.0;
@@ -63,34 +74,74 @@ class HistoryProvider extends ChangeNotifier {
       lateRatePercentage: lateRate,
     );
   }
+
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
-  HistoryProvider() {
-    fetchHistoryOrders();
+  HistoryProvider({int branchId = 1}) {
+    _currentBranchId = branchId;
+    fetchHistoryOrders(branchId: branchId);
+    _startAutoRefreshTimer();
   }
 
-  Future<void> fetchHistoryOrders({int posId = 0}) async {
-    _isLoading = true;
-    _errorMessage = null;
-    notifyListeners();
+  @override
+  void dispose() {
+    _refreshTimer?.cancel();
+    super.dispose();
+  }
+
+  void _startAutoRefreshTimer() {
+    _refreshTimer?.cancel();
+    _refreshTimer = Timer.periodic(const Duration(seconds: 10), (timer) {
+      fetchHistoryOrders(isSilent: true);
+    });
+  }
+
+  Future<HistoryKdsOrders?> fetchHistoryOrders({
+    int branchId = 1,
+    int posId = 0,
+    bool isSilent = false,
+  }) async {
+    final effectiveBranchId = branchId != 0
+        ? branchId
+        : (posId != 0 ? posId : _currentBranchId);
+    _currentBranchId = effectiveBranchId;
+    if (!isSilent) {
+      _isLoading = true;
+      _errorMessage = null;
+      notifyListeners();
+    }
 
     try {
-      final historyKdsOrders = await _ordersApis.getHistoryKDSOrders(posId);
+      final historyKdsOrders = await _ordersApis.getHistoryKDSOrders(
+        effectiveBranchId,
+      );
 
-      if (historyKdsOrders != null && historyKdsOrders.data != null) {
+      if (historyKdsOrders != null &&
+          historyKdsOrders.status == 1 &&
+          historyKdsOrders.data != null) {
         _historyOrders = historyKdsOrders.data!
             .map((datum) => datum.toHistoryOrder())
             .toList();
       } else {
         _historyOrders = [];
       }
+      return historyKdsOrders;
     } catch (e) {
       _errorMessage = e.toString();
+      return null;
     } finally {
-      _isLoading = false;
+      if (!isSilent) {
+        _isLoading = false;
+      }
       notifyListeners();
     }
+  }
+
+  void refreshHistoryOrders() {
+    _searchQuery = '';
+    _selectedTypeFilter = OrderType.all;
+    fetchHistoryOrders();
   }
 
   void setSearchQuery(String query) {
@@ -146,33 +197,6 @@ class HistoryProvider extends ChangeNotifier {
 
       return matchesSearch && matchesType && matchesDate;
     }).toList();
-  }
-
-  void confirmRestore(String orderId, KdsProvider kdsProvider) {
-    final orderIndex = _historyOrders.indexWhere((o) => o.id == orderId);
-
-    if (orderIndex != -1) {
-      final historyOrder = _historyOrders.removeAt(orderIndex);
-
-      _restoringOrderId = null;
-      notifyListeners();
-
-      final restoredKdsOrder = KdsOrder(
-        id: 'restored_${historyOrder.id}_${DateTime.now().millisecondsSinceEpoch}',
-        orderNumber: historyOrder.orderNumber,
-        type: historyOrder.type,
-        status: OrderStatus.inPreparation,
-        customerName: historyOrder.customerName,
-        tableInfoAr: historyOrder.tableInfoAr,
-        tableInfoEn: historyOrder.tableInfoEn,
-        createdAt: DateTime.now(),
-        elapsedDuration: Duration.zero,
-        items: historyOrder.items,
-      );
-
-      kdsProvider.filteredOrders.add(restoredKdsOrder);
-      kdsProvider.notifyListeners();
-    }
   }
 
   void cancelRestore() {

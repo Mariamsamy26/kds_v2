@@ -42,7 +42,7 @@ class Navigation {
 
   void showLoadingGifDialog(BuildContext context) {
     showDialog(
-      barrierColor: Colors.white.withOpacity(0.05),
+      barrierColor: Colors.white.withValues(alpha: 0.05),
       barrierDismissible: false,
       context: context,
       builder: (context) => const LoadingGifDialog(),
